@@ -25,7 +25,7 @@ export const writeS3Logs = async (bucketName: string, key: string, message: stri
         try {
             logsInMinute = await getS3Logs(bucketName, key);
         } catch (error) {
-            if ((error as AWSError).code !== 'NotFound') {
+            if ((error as AWSError).code !== ('NotFound' || "NoSuchKey")) {
                 console.log(`No logs found for ${key}: ${error}`);
             } else {
                 throw error;
