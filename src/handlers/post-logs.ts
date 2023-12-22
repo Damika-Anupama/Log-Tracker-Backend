@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import 'source-map-support/register';
 import { writeS3Logs } from '../utils/s3';
 import { validatePostApiRequest } from '../validate/post-api-validate';
+import { AWSError } from 'aws-sdk';
 
 interface EventBody {
   group: string;
@@ -52,6 +53,17 @@ export const postLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIG
       body: JSON.stringify({ message: 'Log created successfully' }),
     };
   } catch (error) {
+    if ((error as AWSError).message === 'Max retries reached. Unable to acquire lock.') {
+      response = {
+        statusCode: 429,
+        body: JSON.stringify({ message: 'Too many requests' }),
+      };
+    }else if((error as AWSError).code === 'AccessDenied'){
+      response = {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Access denied' }),
+      };
+    }
     console.error(`Error writing object to S3: ${error}`);
     response.body += `: ${error}`;
   }

@@ -22,11 +22,17 @@ const acquireLock = async (bucketName: string, lockKey: string, lambdaId: string
 };
 
 const checkLockFile = async (bucketName: string, lockKey: string): Promise<boolean> => {
+    const params = {
+        Bucket: bucketName,
+        Key: lockKey,
+    };
+
     try {
-        await s3.headObject({ Bucket: bucketName, Key: lockKey }).promise();
+        await s3.getObject(params).promise();
         return true;
     } catch (error) {
-        if ((error as AWSError).code === 'NotFound') {
+        if ((error as AWSError).code === ('NotFound'||"AccessDenied")) {
+            console.log(`Lock file not found: ${lockKey}` + error);
             return false;
         }
         throw error;
