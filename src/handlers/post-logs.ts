@@ -1,5 +1,6 @@
-import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import crypto from 'crypto';
+import 'source-map-support/register';
 import { writeS3Logs } from '../utils/s3';
 import { validatePostApiRequest } from '../validate/post-api-validate';
 
@@ -35,12 +36,17 @@ export const postLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIG
   const key = `${group}/${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}/logs_${hour}_${minute}.log`;
 
   const bucketName = process.env.SAMPLE_BUCKET ?? '';
+  //  unique identifier for each Lambda function
+  const lambdaId = crypto.randomBytes(16).toString('hex');
+
   let response: ResponseBody = {
     statusCode: 500,
     body: JSON.stringify({ message: 'Internal server error' }),
-  }
+  };
+
   try {
-    await writeS3Logs(bucketName, key, message);
+    await writeS3Logs(bucketName, key, message, lambdaId);
+
     response = {
       statusCode: 201,
       body: JSON.stringify({ message: 'Log created successfully' }),
