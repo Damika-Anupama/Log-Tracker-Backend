@@ -38,26 +38,35 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
   let logs: string[] = [];
 
   try {
+    const promises: Promise<void>[] = [];
+
     for (let hour = Number(fromHour); hour <= Number(toHour); hour++) {
       for (let minute = Number(fromMinute); minute <= Number(toMinute); minute++) {
         const key = `${group}/${year}/${month}/${day}/logs_${hour}_${minute}.log`;
         const bucketName = process.env.SAMPLE_BUCKET ?? '';
 
-        try {
-          const logsInMinute = await getS3Logs(bucketName, key);
-          if (logsInMinute.length !== 0) {
-            logs.push(...logsInMinute);
-          }
-        } catch (error) {
-          console.error(`Error getting object from S3: ${error}`);
-          if ((error as AWSError).code !== ('NotFound' || "NoSuchKey")) {
-            console.log(`No logs found for ${key}: ${error}`)
-          } else {
-            throw error;
-          }
-        }
+        promises.push(
+          getS3Logs(bucketName, key)
+            .then((logsInMinute) => {
+              if (logsInMinute.length !== 0) {
+                logs.push(...logsInMinute);
+              }
+            })
+            .catch((error) => {
+              console.error(`Error getting object from S3: ${error}`);
+              if ((error as AWSError).code !== 'NotFound' && (error as AWSError).code !== 'NoSuchKey') {
+                console.log(`No logs found for ${key}: ${error}`);
+              } else {
+                throw error;
+              }
+            })
+        );
       }
     }
+
+    // Wait for all promises to resolve
+    await Promise.all(promises);
+
 
     if (logs.length === 0) {
       const response = {
