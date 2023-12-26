@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import crypto from 'crypto';
 import 'source-map-support/register';
 import { writeS3Logs } from '../utils/s3';
-import { validatePostApiRequest } from '../validate/post-api-validate';
+import { validatePostApiRequest } from '../validate/post-api/post-api-validate';
 import { AWSError } from 'aws-sdk';
 
 interface EventBody {
