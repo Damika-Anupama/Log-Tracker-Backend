@@ -31,7 +31,7 @@ const checkLockFile = async (bucketName: string, lockKey: string): Promise<boole
         await s3.getObject(params).promise();
         return true;
     } catch (error) {
-        if ((error as AWSError).code === ('NotFound'||"AccessDenied")) {
+        if ((error as AWSError).code === "NoSuchKey") {
             console.log(`Lock file not found: ${lockKey}` + error);
             return false;
         }
