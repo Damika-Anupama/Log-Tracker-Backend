@@ -31,7 +31,7 @@ Resources:
           Properties:
             Path: /logs/{group}
             Method: GET
-      CodeUri: s3://s3-log-data-wealthos/45b8ac19e498c6f08c5171bc73cc6694
+      CodeUri: s3://s3-log-data-wealthos/032037be6df80460e60bb89412eeb523
   postLogsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -49,12 +49,12 @@ Resources:
           Properties:
             Path: /logs
             Method: POST
-      CodeUri: s3://s3-log-data-wealthos/45b8ac19e498c6f08c5171bc73cc6694
+      CodeUri: s3://s3-log-data-wealthos/032037be6df80460e60bb89412eeb523
   LogDataBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: s3-log-data-wealthos
-      AccessControl: PublicRead
+      AccessControl: Private
     Metadata:
       SamResourceId: LogDataBucket
   RuntimeDependenciesLayer:
@@ -65,7 +65,7 @@ Resources:
     Properties:
       LayerName: log-tracker-backend-dependencies
       Description: Runtime dependencies for Lambdas
-      ContentUri: s3://s3-log-data-wealthos/45b8ac19e498c6f08c5171bc73cc6694
+      ContentUri: s3://s3-log-data-wealthos/032037be6df80460e60bb89412eeb523
       CompatibleRuntimes:
       - nodejs18.x
       RetentionPolicy: Retain

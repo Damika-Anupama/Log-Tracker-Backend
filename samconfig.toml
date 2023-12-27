@@ -1,7 +1,7 @@
 version = 0.1
 [default.deploy.parameters]
 stack_name = "log-tracker-backend"
-resolve_s3 = true
+s3_bucket = "s3-log-data-wealthos"
 s3_prefix = "log-tracker-backend"
 region = "us-east-2"
 confirm_changeset = true
