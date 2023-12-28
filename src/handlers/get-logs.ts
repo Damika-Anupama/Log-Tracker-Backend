@@ -38,6 +38,8 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
   let logs: string[] = [];
 
   try {
+    // messure time to get logs
+    const startTime = new Date().getTime();
     for (let hour = Number(fromHour); hour <= Number(toHour); hour++) {
       for (let minute = Number(fromMinute); minute <= Number(toMinute); minute++) {
         const key = `${group}/${year}/${month}/${day}/logs_${hour}_${minute}.log`;
@@ -49,16 +51,14 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
             logs.push(...logsInMinute);
           }
         } catch (error) {
-          console.error(`Error getting object from S3: ${error}`);
-          if ((error as AWSError).code !== ('NotFound' || "NoSuchKey")) {
-            console.log(`No logs found for ${key}: ${error}`)
-          } else {
+          if ((error as AWSError).code !== 'NoSuchKey') {
             throw error;
           }
         }
       }
     }
-
+    const endTime = new Date().getTime();
+    console.log(`Time to get logs: ${endTime - startTime}ms`);
     if (logs.length === 0) {
       const response = {
         statusCode: 404,
@@ -71,7 +71,7 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
       statusCode: 200,
       body: JSON.stringify({ logs }),
     };
-
+    response.body += `Time to get logs: ${endTime - startTime}ms`;
     return response;
   } catch (error) {
     console.error(`Error: ${error}`);
