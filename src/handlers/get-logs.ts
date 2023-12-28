@@ -38,7 +38,6 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
   let logs: string[] = [];
 
   try {
-    const startTime = new Date().getTime();
     const promises: Promise<string[]>[] = [];
 
     for (let hour = Number(fromHour); hour <= Number(toHour); hour++) {
@@ -60,7 +59,6 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
     }
 
     logs = (await Promise.all(promises)).flat();
-    const endTime = new Date().getTime();
     if (logs.length === 0) {
       const response = {
         statusCode: 404,
@@ -73,7 +71,6 @@ export const getLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
       statusCode: 200,
       body: JSON.stringify({ logs }),
     };
-    response.body += ` Time to get logs: ${endTime - startTime}ms`;
     return response;
   } catch (error) {
     console.error(`Error: ${error}`);
