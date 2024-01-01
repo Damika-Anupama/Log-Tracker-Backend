@@ -13,14 +13,19 @@ Transform:
   - AWS::Serverless-2016-10-31
 
 Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
   Function:
     Layers:
       - !Ref RuntimeDependenciesLayer
     Environment:
       # # Environment variables used by every function
       Variables:
-       SAMPLE_BUCKET: !Ref LogDataBucket
-       SAMPLE_TABLE: !Ref SampleTable
+        SAMPLE_BUCKET: !Ref LogDataBucket
+        SAMPLE_TABLE: !Ref SampleTable
     Runtime: nodejs18.x
     MemorySize: 128
     Timeout: 100
@@ -82,7 +87,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 2
         WriteCapacityUnits: 2
-          
+
   # Shared layer with Lambda runtime dependencies
   RuntimeDependenciesLayer:
     Type: AWS::Serverless::LayerVersion

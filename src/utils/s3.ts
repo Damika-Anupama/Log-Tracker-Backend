@@ -23,8 +23,8 @@ export const getS3Logs = async (bucketName: string, key: string): Promise<string
 
 export const writeS3Logs = async (bucketName: string, key: string, message: string, lambdaId: string): Promise<void> => {
     const lockKey = `${key}.lock`;
-    const maxRetries = 5; 
-    const retryDelayMillis = 200;
+    const maxRetries = 20; 
+    const retryDelayMillis = 50;
 
 
     try {

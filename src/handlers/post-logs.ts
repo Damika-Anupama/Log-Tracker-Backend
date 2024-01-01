@@ -45,12 +45,23 @@ export const postLogsHandler = async (event: APIGatewayProxyEvent): Promise<APIG
     body: JSON.stringify({ message: 'Internal server error' }),
   };
 
+  interface ResponseBody {
+    statusCode: number;
+    body: string;
+    headers?: { [key: string]: string };
+  }
+
   try {
     await writeS3Logs(bucketName, key, message, lambdaId);
 
     response = {
       statusCode: 201,
       body: JSON.stringify({ message: 'Log created successfully' }),
+      headers: {
+        "Access-Control-Allow-Headers" : "Content-Type",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST"
+      },
     };
   } catch (error) {
     if ((error as AWSError).message === 'Max retries reached. Unable to acquire lock.') {
