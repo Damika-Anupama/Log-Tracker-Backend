@@ -1,8 +1,9 @@
 import { AWSError } from 'aws-sdk';
 import S3 from 'aws-sdk/clients/s3';
-import { retryWriteLock, releaseLock } from './lock-s3';
+import { acquireLock, releaseLock } from './dynamodb';
 
 const s3 = new S3();
+const dynamoDBTableName = process.env.SAMPLE_TABLE ?? '';
 
 export const getS3Logs = async (bucketName: string, key: string): Promise<string[]> => {
     const params = {
@@ -22,17 +23,18 @@ export const getS3Logs = async (bucketName: string, key: string): Promise<string
 
 export const writeS3Logs = async (bucketName: string, key: string, message: string, lambdaId: string): Promise<void> => {
     const lockKey = `${key}.lock`;
+    const maxRetries = 20; 
+    const retryDelayMillis = 50;
+
+
     try {
-        const maxRetries = 5;
-        await retryWriteLock(bucketName, lockKey, lambdaId, maxRetries);
+        await acquireLock(dynamoDBTableName, lockKey, lambdaId, maxRetries, retryDelayMillis);
 
         let logsInMinute: string[] = [];
         try {
             logsInMinute = await getS3Logs(bucketName, key);
         } catch (error) {
-            if ((error as AWSError).code !== ('NotFound' || 'NoSuchKey')) {
-                console.log(`No logs found for ${key}: ${error}`);
-            } else {
+            if ((error as AWSError).code !== 'NoSuchKey') {
                 throw error;
             }
         }
@@ -41,11 +43,11 @@ export const writeS3Logs = async (bucketName: string, key: string, message: stri
         const params = {
             Bucket: bucketName,
             Key: key,
-            Body: `${timestamp}: ${message}`
+            Body: `${timestamp}: ${message}`,
         };
 
         if (logsInMinute.length !== 0) {
-            params.Body = logsInMinute.join("\n") + '\n' + params.Body;
+            params.Body = logsInMinute.join('\n') + '\n' + params.Body;
         }
 
         await s3.putObject(params).promise();
@@ -53,6 +55,6 @@ export const writeS3Logs = async (bucketName: string, key: string, message: stri
         console.error(`Failed to write logs to S3: ${error}`);
         throw error;
     } finally {
-        await releaseLock(bucketName, lockKey, lambdaId);
+        await releaseLock(dynamoDBTableName, lockKey);
     }
 };

@@ -13,13 +13,19 @@ Transform:
   - AWS::Serverless-2016-10-31
 
 Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
   Function:
     Layers:
       - !Ref RuntimeDependenciesLayer
     Environment:
       # # Environment variables used by every function
       Variables:
-       SAMPLE_BUCKET: !Ref LogDataBucket
+        SAMPLE_BUCKET: !Ref LogDataBucket
+        SAMPLE_TABLE: !Ref SampleTable
     Runtime: nodejs18.x
     MemorySize: 128
     Timeout: 100
@@ -56,6 +62,8 @@ Resources:
       Policies:
         - S3WritePolicy:
             BucketName: !Ref LogDataBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SampleTable
       Events:
         Api:
           Type: Api
@@ -68,7 +76,18 @@ Resources:
     Properties:
       BucketName: s3-log-data-wealthos
       AccessControl: Private
-          
+
+    # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
+  SampleTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: LockKey
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
   # Shared layer with Lambda runtime dependencies
   RuntimeDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
