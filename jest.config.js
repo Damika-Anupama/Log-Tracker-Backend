@@ -5,6 +5,7 @@ module.exports = {
     "<rootDir>/.aws-sam",
     "<rootDir>/__tests__/fixtures",
     "<rootDir>/__tests__/utils",
+    "<rootDir>/__tests__/unit",
     "<rootDir>/__tests__/global-setup.js",
   ],
   clearMocks: true,
